@@ -7,8 +7,7 @@ config.toml
 
 # Ignore logs
 logs/
-*/logs/
-.trunk/logs/
+**/logs/
 
 # Ignore IDE related code
 .vscode/
