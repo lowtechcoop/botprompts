@@ -24,7 +24,7 @@ function checkSecretsFile {
         if [[ ${CONFIRM_CREATE_FILE^^} == [yY] ]]; then
             # Check if a ".sample" version exists otherwise just create a blank file
             if [[ -f "${1}.sample" ]]; then
-                copy "${1}.sample" "${1}"
+                cp "${1}.sample" "${1}"
             else
                 touch "${1}"
             fi
