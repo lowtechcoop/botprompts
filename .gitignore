@@ -1,6 +1,5 @@
 # Ignore config
 .env
-.env.*
 .python-version
 config.toml
 *.env
