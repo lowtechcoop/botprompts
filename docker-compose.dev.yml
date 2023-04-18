@@ -1,0 +1,64 @@
+version: "3.5"
+
+volumes:
+    db_data: {}
+    pgadmin_data: {}
+
+networks:
+    backend:
+        name: backend
+
+secrets:
+    pgadmin_email:
+        file: ./secrets/pgadmin_email.txt
+    pgadmin_password:
+        file: ./secrets/pgadmin_password.txt
+
+    db_username:
+        file: ./secrets/db_username.txt
+    db_database:
+        file: ./secrets/db_database.txt
+    db_password:
+        file: ./secrets/db_password.txt
+
+services:
+    db:
+        hostname: db
+        image: bitnami/postgresql:14.7.0
+        restart: always
+        environment:
+            - ALLOW_EMPTY_PASSWORD=no
+            - POSTGRESQL_USERNAME_FILE=/run/secrets/db_username
+            - POSTGRESQL_DATABASE_FILE=/run/secrets/db_database
+            - POSTGRESQL_PASSWORD_FILE=/run/secrets/db_password
+        secrets:
+            - db_database
+            - db_username
+            - db_password
+        volumes:
+            - db_data:/bitnami/postgresql
+        networks:
+            - backend
+        ports:
+            - 5432:5432
+
+    pgadmin:
+        # https://www.pgadmin.org/docs/pgadmin4/6.21/container_deployment.html
+        hostname: pgadmin
+        image: dpage/pgadmin4:6.21
+        restart: always
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=admin@local.dev
+            - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/pgadmin_password
+        secrets:
+            - pgadmin_email
+            - pgadmin_password
+        depends_on:
+            - db
+        volumes:
+            - ./config/docker/db/servers.json:/pgadmin4/servers.json
+            - pgadmin_data:/var/lib/pgadmin
+        ports:
+            - 2260:80
+        networks:
+            - backend
