@@ -14,6 +14,8 @@ secrets:
     pgadmin_password:
         file: ./secrets/pgadmin_password.txt
 
+    db_host:
+        file: ./secrets/db_host.txt
     db_username:
         file: ./secrets/db_username.txt
     db_database:
@@ -56,8 +58,6 @@ services:
         volumes:
             - ./config/docker/db/servers.json:/pgadmin4/servers.json
             - pgadmin_data:/var/lib/pgadmin
-        ports:
-            - 2260:80
         networks:
             - backend
 
@@ -71,6 +71,7 @@ services:
             - db_database
             - db_username
             - db_password
+            - db_host
         depends_on:
             - db
         networks:

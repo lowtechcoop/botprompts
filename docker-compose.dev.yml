@@ -14,6 +14,8 @@ secrets:
     pgadmin_password:
         file: ./secrets/pgadmin_password.txt
 
+    db_host:
+        file: ./secrets/db_host.txt
     db_username:
         file: ./secrets/db_username.txt
     db_database:
