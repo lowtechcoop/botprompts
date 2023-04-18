@@ -66,7 +66,6 @@ class BaseConfig:
     JWT_REFRESH_COOKIE_SAMESITE: str
     JWT_REFRESH_COOKIE_PATH: str
 
-
     @classmethod
     def from_env(cls) -> "BaseConfig":
         """
@@ -112,15 +111,11 @@ def get_config() -> BaseConfig:
 
     load_dotenv(dotenv_path=ENV_FILENAME, override=True)
 
-    # Override the password ENV variable if it has been instead specified in a file
-    db_password = os.environ.get("DB_PASSWORD", None)
-    db_password_file = os.environ.get("DB_PASSWORD_FILE", None)
-
-    # Load the DB_PASSWORD environment variable with contents from the DB_PASSWORD_FILE location
-    if db_password_file is not None and db_password is None:
-        os.environ["DB_PASSWORD"] = read_file_text(Path(db_password_file)).replace(
-            "\n", ""
-        )
+    # Override the ENV variables if they have been set with the _FILE version
+    os.environ["DB_USERNAME"] = load_environ_name_or_file("DB_USERNAME", "")
+    os.environ["DB_PASSWORD"] = load_environ_name_or_file("DB_PASSWORD", "")
+    os.environ["DB_NAME"] = load_environ_name_or_file("DB_NAME", "")
+    os.environ["DB_HOST"] = load_environ_name_or_file("DB_HOST", "")
 
     APP_ENVIRONMENT = os.environ.get(
         "APP_ENVIRONMENT", "UNDEFINED_APP_ENVIRONMENT_FIX_IN_DOTENV_FILE"
@@ -131,6 +126,25 @@ def get_config() -> BaseConfig:
     settings = configuration_environments[APP_ENVIRONMENT].from_env()  # type: ignore
 
     return settings
+
+
+def load_environ_name_or_file(environ_key: str, default: str) -> str:
+    """
+    Load an environ from a name or a file (if it exists) returning the value or the supplied default
+    """
+
+    environ_value_file = os.environ.get(f"{environ_key.upper()}_FILE", None)
+    if environ_value_file is not None:
+        environ_value_file_path = Path(environ_value_file)
+        if not environ_value_file_path.exists():
+            raise ValueError(
+                f"Environ key '{environ_key}_FILE' is set but the file does not exist or "
+                f"cannot be accessed at '{environ_value_file_path.absolute()}'"
+            )
+
+        return read_file_text(environ_value_file_path).replace("\n", "")
+
+    return os.environ.get(environ_key, default)
 
 
 def get_config_dict(

@@ -13,6 +13,7 @@ from app.database.helper import (
 from dpn_pyutils.common import get_logger
 from fastapi import Depends
 from sqlalchemy import MetaData
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.future import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -119,8 +120,18 @@ class DatabaseManager:
 
         self.db = self.DB_ENGINES[self.focused_db_key]
 
-        if test_connection(self.db):
-            log.debug("Database connection test successful")
+        try:
+            if test_connection(self.db):
+                log.debug("Database connection test successful")
+
+        except OperationalError as e:
+            log.error(
+                "Could not test connection using connection string. "
+                "Attempted connection string is '%s'",
+                get_connection_string(self.config),
+            )
+
+            raise e
 
         self.base = declarative_base()
 
@@ -138,7 +149,7 @@ class DatabaseManager:
             self.metadata.reflect(bind=self.db)
 
             log.debug("Binding reflected metadata to declarative base")
-            Base.metadata = self.metadata # type: ignore
+            Base.metadata = self.metadata  # type: ignore
 
         log.debug("Ready to import declarative models")
         self.on_import_declarative_models()
@@ -156,8 +167,7 @@ def import_declarative_models() -> None:
     This method contains all the declarative models that we need to import
     """
 
-    from app.modules.prompts.models import PromptRecord, PromptHistoryRecord # noqa
-
+    from app.modules.prompts.models import PromptHistoryRecord, PromptRecord  # noqa
 
 
 def get_db(db_manager: DatabaseManager = Depends(DatabaseManager)) -> Engine:
