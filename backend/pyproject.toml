@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "botprompts"
-version = "1.0.1"
+version = "1.0.2"
 description = "A repository of prompts for ChatGPT and similar conversational bots"
 authors = ["ltnyet <130899831+ltnyet@users.noreply.github.com>"]
 license = "MIT License"

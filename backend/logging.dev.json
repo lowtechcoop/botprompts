@@ -1,0 +1,43 @@
+{
+    "version": 1,
+    "disable_existing_loggers": true,
+    "logging_project_name": "botprompts",
+    "formatters": {
+        "default": {
+            "()": "uvicorn.logging.DefaultFormatter",
+            "fmt": "%(levelprefix)-8s %(asctime)s.%(msecs)03d [%(threadName)s] %(name)s %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+            "use_colors": true
+        }
+    },
+    "handlers": {
+        "console": {
+            "level": "DEBUG",
+            "formatter": "default",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout"
+        }
+    },
+    "loggers": {
+        "botprompts": {
+            "level": "DEBUG",
+            "handlers": ["console"],
+            "propagate": false
+        },
+        "botprompts.app.database.meta": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": false
+        },
+        "uvicorn": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": false
+        }
+    },
+    "root": {
+        "level": "DEBUG",
+        "handlers": ["console"],
+        "propagate": false
+    }
+}
