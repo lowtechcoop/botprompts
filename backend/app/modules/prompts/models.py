@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List
 from app.config import get_config
 from app.database.types import BaseRecord
 from sqlalchemy import Boolean, ForeignKey, Index, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship  # type: ignore
 
 config = get_config()
 
@@ -30,7 +30,7 @@ class PromptRecord(BaseRecord):
             back_populates="prompt",
             # trunk-ignore(ruff/E501)
             primaryjoin="and_(PromptRecord.id==PromptRevisionRecord.prompt_id, PromptRevisionRecord.is_current==True)",
-            cascade="all,delete"
+            cascade="all,delete",
         )
         history: List["PromptRevisionRecord"] = []
 
