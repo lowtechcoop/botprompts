@@ -32,9 +32,22 @@ class AdapterPrompts(AdapterCRUD[models.PromptRecord]):
 
         return self.session.execute(stmt).unique().scalar_one_or_none()
 
+    async def get_current_commands(self) -> List[str]:
+        """
+        Get a list of current command slugs.
+        """
+
+        sql_statement = text(
+            "SELECT p.slug as command FROM prompts p WHERE is_active=True ORDER BY p.slug ASC"
+        )
+
+        command_list = [r[0] for r in self.session.execute(sql_statement).all()]
+
+        return command_list
+
     async def get_current_list(self) -> List[schemas.PromptListRow]:
         """
-        Get a list of current prompts
+        Get a list of current prompts.
         """
 
         sql_statement = text(
@@ -102,7 +115,7 @@ class AdapterPromptRevision(AdapterCRUD[models.PromptRevisionRecord]):
             select(self.table)
             .where(self.table.is_active == True)  # trunk-ignore(ruff/E712)
             .where(self.table.prompt_id == prompt_id)
-            .order_by(self.table.id.desc()) # type: ignore
+            .order_by(self.table.id.desc())  # type: ignore
         )
 
         return [r[0] for r in self.session.execute(stmt).all()]

@@ -61,6 +61,14 @@ class PromptCurrentList(BaseModel):
     prompts: List[PromptListRow]
     total: int
 
+
+class PromptCommandsList(BaseModel):
+    """
+    Describes a flat list of available command prefixes.
+    """
+
+    commands: List[str]
+
 class PromptList(BaseModel):
     """
     Describes a list of prompts based on filter criteria.

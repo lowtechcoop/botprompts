@@ -30,6 +30,7 @@ class PromptRecord(BaseRecord):
             back_populates="prompt",
             # trunk-ignore(ruff/E501)
             primaryjoin="and_(PromptRecord.id==PromptRevisionRecord.prompt_id, PromptRevisionRecord.is_current==True)",
+            cascade="all,delete"
         )
         history: List["PromptRevisionRecord"] = []
 

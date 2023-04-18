@@ -87,6 +87,25 @@ def get_router__prompts() -> APIRouter:
         return schemas.PromptCurrentList(total=total_rows, prompts=records)
 
     @router.get(
+        "/commands",
+        response_model=schemas.PromptCommandsList,
+        status_code=status.HTTP_200_OK,
+        name="prompts:commands-list",
+    )
+    async def prompts__commands_list(
+        db_prompts: AdapterPrompts = Depends(get_db_prompts),
+    ):
+        """
+        Get a flat list of current commands
+        """
+
+        records = await db_prompts.get_current_commands()
+
+        return schemas.PromptCommandsList(commands=records)
+
+
+
+    @router.get(
         "/detail/{prompt_slug}",
         response_model=schemas.Prompt,
         status_code=status.HTTP_200_OK,
