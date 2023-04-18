@@ -9,8 +9,6 @@ networks:
         name: backend
 
 secrets:
-    pgadmin_email:
-        file: ./secrets/pgadmin_email.txt
     pgadmin_password:
         file: ./secrets/pgadmin_password.txt
 
@@ -50,8 +48,9 @@ services:
         environment:
             - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
             - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/pgadmin_password
+        env_file:
+            - .env
         secrets:
-            - pgadmin_email
             - pgadmin_password
         depends_on:
             - db
