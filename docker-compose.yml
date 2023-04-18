@@ -39,8 +39,6 @@ services:
             - db_data:/bitnami/postgresql
         networks:
             - backend
-        ports:
-            - 5432:5432
 
     pgadmin:
         # https://www.pgadmin.org/docs/pgadmin4/6.21/container_deployment.html
@@ -48,7 +46,7 @@ services:
         image: dpage/pgadmin4:6.21
         restart: always
         environment:
-            - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@local.dev}
+            - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
             - PGADMIN_DEFAULT_PASSWORD_FILE=/run/secrets/pgadmin_password
         secrets:
             - pgadmin_email
@@ -62,3 +60,33 @@ services:
             - 2260:80
         networks:
             - backend
+
+    api:
+        hostname: api
+        build:
+            context: ./
+            dockerfile: ./config/docker/backend/Dockerfile
+        restart: always
+        secrets:
+            - db_database
+            - db_username
+            - db_password
+        depends_on:
+            - db
+        networks:
+            - backend
+        ports:
+            - 6305:8000
+
+
+    frontend:
+        hostname: frontend
+        build:
+            context: ./
+            dockerfile: ./config/docker/frontend/Dockerfile
+            target: frontend_prod
+        restart: always
+        depends_on:
+            - api
+        ports:
+            - 6300:80
