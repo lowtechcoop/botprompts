@@ -12,7 +12,7 @@ from app.modules.prompts.adapters import (
 from dpn_pyutils.common import get_logger
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, status
 from pydantic import Json
-import slugify
+from slugify import slugify
 
 config = get_config()
 
@@ -172,7 +172,7 @@ def get_router__prompts() -> APIRouter:
             )
 
         prompt_dict = create_request.dict(include={"slug"})
-        prompt_dict["slug"] = slugify.slugify(prompt_dict["slug"])
+        prompt_dict["slug"] = slugify(prompt_dict["slug"])
 
         created_prompt = await db_prompts.create(prompt_dict)
 
