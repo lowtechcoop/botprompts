@@ -1,7 +1,7 @@
 import uuid
 from typing import Any, Dict, Generic, List, Type
 
-from app.database.types import BaseRecordType, RecordProtocol
+from app.database.types import ID, BaseRecordType, RecordProtocol
 from dpn_pyutils.common import get_logger
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -14,7 +14,7 @@ class AdapterCRUDBase(Generic[RecordProtocol]):
     Base adapter for CRUD operations on a table.
     """
 
-    async def get(self, id: int) -> RecordProtocol | None:  # type: ignore
+    async def get(self, id: ID) -> RecordProtocol | None:  # type: ignore
         """
         Get a single record by id.
         """
@@ -29,6 +29,7 @@ class AdapterCRUDBase(Generic[RecordProtocol]):
         sort_direction: str,
         range_start: int,
         range_end: int,
+        query_options: Any | None,
     ) -> List[RecordProtocol] | None:  # type: ignore
         """
         Get a list of records by id.
@@ -84,18 +85,24 @@ class AdapterCRUD(AdapterCRUDBase, Generic[BaseRecordType]):
 
         return self.session.query(func.count(self.table.id)).scalar()
 
-    async def get(self, id: int) -> BaseRecordType | None:
+    async def get(
+        self,
+        id: ID,
+        query_options: Any | None = None,
+    ) -> BaseRecordType | None:
         """
         Get a record specified by the id.
         """
 
-        return (
-            self.session.execute(select(self.table).where(self.table.id == id))
-            .unique()
-            .scalar_one_or_none()
-        )
+        stmt = select(self.table)
+        if query_options is not None:
+            stmt = stmt.options(query_options)
 
-    async def get_by_ids(self, ids: List[int]) -> List[BaseRecordType]:
+        stmt = stmt.where(self.table.id == id)
+
+        return self.session.execute(stmt).scalar_one_or_none()
+
+    async def get_by_ids(self, ids: List[ID]) -> List[BaseRecordType]:
         """
         Get a list of records by ids.
         """
@@ -110,13 +117,19 @@ class AdapterCRUD(AdapterCRUDBase, Generic[BaseRecordType]):
         sort_direction: str,
         range_start: int,
         range_end: int,
+        query_options: Any | None = None,
     ) -> List[BaseRecordType]:
         """
         Get a list of records based on the filter, sort, and range.
         """
 
-        stmt = select(self.table)
+        stmt = self.session.query(self.table)  # select(self.table)
         column_names = self.table.__table__.columns.keys()
+
+        if query_options is not None:
+            # Typically loading relationship options
+            # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#using-contains-eager-to-load-a-custom-filtered-collection-result
+            stmt = stmt.options(query_options)
 
         for col_name in column_names:
             # Add our filter columns to statement
@@ -167,7 +180,7 @@ class AdapterCRUD(AdapterCRUDBase, Generic[BaseRecordType]):
         else:
             stmt = stmt.limit(None)
 
-        results = [r[0] for r in self.session.execute(stmt).unique().all()]
+        results = [r[0] for r in self.session.execute(stmt).all()]
 
         return results
 

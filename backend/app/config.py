@@ -56,6 +56,7 @@ class BaseConfig:
 
     # Jwt Authentication
     JWT_SECURITY_TOKEN: str
+    JWT_ISS: str
     JWT_ALGORITHM: str
     JWT_ACCESS_TOKEN_LIFETIME_SECONDS: int
     JWT_REFRESH_TOKEN_LIFETIME_SECONDS: int
@@ -65,6 +66,30 @@ class BaseConfig:
     JWT_REFRESH_COOKIE_SECURE: bool
     JWT_REFRESH_COOKIE_SAMESITE: str
     JWT_REFRESH_COOKIE_PATH: str
+    AUTH_PW_RESET_TOKEN_LIFETIME_SECONDS: int
+    AUTH_PW_RESET_TOKEN_LENGTH: int
+    AUTH_EMAIL_VERIFICATION_TOKEN_LIFETIME_SECONDS: int
+    AUTH_EMAIL_VERIFICATION_TOKEN_LENGTH: int
+    AUTH_INVITE_TOKEN_LIFETIME_SECONDS: int
+    AUTH_INVITE_TOKEN_LENGTH: int
+    AUTH_CRYPT_SCHEME: str
+    AUTH_GUEST_USER_ROLE_NAME: str
+
+    # Email service
+    EMAIL_SERVICE_ENABLED: bool
+    EMAIL_FROM: str
+    EMAIL_REPLY_TO: str
+    EMAIL_SES_REGION: str
+    EMAIL_SES_ACCESS_KEY: str
+    EMAIL_SES_SECRET_KEY: str
+
+    # Rate Limiting
+    RATE_LIMIT_ENABLED: bool
+    RATE_LIMIT_GLOBAL: str
+    RATE_LIMIT_ACCOUNT_REGISTER: str
+    RATE_LIMIT_ACCOUNT_SIGNIN: str
+    RATE_LIMIT_ACCOUNT_RESET: str
+
 
     @classmethod
     def from_env(cls) -> "BaseConfig":
@@ -112,10 +137,16 @@ def get_config() -> BaseConfig:
     load_dotenv(dotenv_path=ENV_FILENAME, override=True)
 
     # Override the ENV variables if they have been set with the _FILE version
-    os.environ["DB_USERNAME"] = load_environ_name_or_file("DB_USERNAME", "")
-    os.environ["DB_PASSWORD"] = load_environ_name_or_file("DB_PASSWORD", "")
-    os.environ["DB_NAME"] = load_environ_name_or_file("DB_NAME", "")
-    os.environ["DB_HOST"] = load_environ_name_or_file("DB_HOST", "")
+    environ_vars_eligible_for_secrets_file = [
+        "DB_USERNAME",
+        "DB_PASSWORD",
+        "DB_NAME",
+        "DB_HOST",
+        "EMAIL_SES_ACCESS_KEY",
+        "EMAIL_SES_SECRET_KEY"
+    ]
+    for k in environ_vars_eligible_for_secrets_file:
+        os.environ[k] = load_environ_name_or_file(k, "")
 
     APP_ENVIRONMENT = os.environ.get(
         "APP_ENVIRONMENT", "UNDEFINED_APP_ENVIRONMENT_FIX_IN_DOTENV_FILE"

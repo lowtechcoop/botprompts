@@ -1,12 +1,14 @@
 from typing import TYPE_CHECKING, Callable, Dict, List, Type
 
 from app.core.errors import AppHTTPError
+from app.utils.limiter import rate_limit_exceeded_handler
 from dpn_pyutils.common import get_logger
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from slowapi.errors import RateLimitExceeded
 from starlette import status
 
 log = get_logger(__name__)
@@ -83,4 +85,5 @@ async def application_http_error_handler(request: Request, exc: AppHTTPError):
 ERROR_HANDLERS: Dict[Type[Exception], Callable] = {
     RequestValidationError: validation_error_handler,
     AppHTTPError: application_http_error_handler,
+    RateLimitExceeded: rate_limit_exceeded_handler,
 }

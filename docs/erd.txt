@@ -1,0 +1,107 @@
+Table sys_users {
+  id uuid
+  email varchar
+  display_name varchar
+  password varchar
+  is_superuser bool
+  is_verified bool
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+
+Table vendors {
+  id integer
+  name varchar
+  display_name varchar
+  homepage varchar
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table vendor_models {
+  id integer
+  name varchar
+  display_name varchar
+  description varchar
+  vendor_id int
+  detail_url varchar
+  max_tokens int
+  training_data_cutoff int
+  expired_at timestmap
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table vendor_organizations {
+  id integer
+  name varchar
+  display_name varchar
+  vendor_id integer
+  user_id integer
+  vendor_org_ident varchar
+  description varchar
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table vendor_connections {
+  id integer
+  name varchar
+  display_name varchar
+  vendor_organization_id integer
+  user_id integer
+  connection_key varchar
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table prompts {
+  id integer
+  name varchar
+  display_name varchar
+  prompt_revision_id int
+  prompt_parameter_id int
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table prompts_revisions {
+  id integer
+  prompt_id integer
+  is_current bool
+  description varchar
+  prompt_text varchar
+}
+
+Table prompts_parameters {
+  id integer
+  model_id int
+  temperature float
+  top_p float
+  n int
+  stream bool
+  stop varchar
+  max_tokens int
+  presence_penalty float
+  frequency_penalty float
+  logit_bias varchar
+  is_current bool
+  is_active bool
+  created_at timestamp
+  updated_at timestamp
+}
+
+Ref: vendor_models.id < prompts_parameters.model_id
+Ref: prompts.prompt_revision_id < prompts_revisions.id
+Ref: prompts.prompt_parameter_id < prompts_parameters.id
+Ref: vendors.id < vendor_models.vendor_id
+Ref: vendors.id < vendor_organizations.vendor_id
+Ref: sys_users.id < vendor_organizations.user_id
+Ref: vendor_connections.vendor_organization_id < vendor_organizations.id

@@ -2,10 +2,11 @@ import time
 
 from app.config import BaseConfig
 from app.core.error_handling import ERROR_HANDLERS
-
+from app.utils.limiter import limiter
 from dpn_pyutils.common import get_logger
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
+from slowapi.middleware import SlowAPIMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
@@ -14,14 +15,15 @@ log = get_logger(__name__)
 
 SHOW_API_DOCS_ENVIRONMENTS = ["development", "staging"]
 """
-Ensure that the jsonapi, swagger, and redoc are not visible where they are
-not permitted
+Ensure that the jsonapi, swagger, and redoc are not visible where they are not permitted
 """
 
-EXCLUDE_PROCESS_TIME_PATHS = []
+EXCLUDE_PROCESS_TIME_PATHS = [
+    "/auth",
+]
 """
-These paths, prefixed with the API_V1 prefix, are excluded from reporting X-Process-Time
-for security and timing reasons
+These paths, prefixed with the API_V1, are excluded from adding the 'X-Process-Time' header,
+typically for security reasons
 """
 
 
@@ -42,15 +44,15 @@ class BotpromptsWebapp(FastAPI):
 
 def create_webapp(config: BaseConfig) -> BotpromptsWebapp:
     """
-    Method that creates the BotpromptsWebapp
+    Method that creates the Botprompts app
     """
 
-    log.debug("Creating BotpromptsWebapp based on supplied config")
+    log.debug("Creating Botprompts based on supplied config")
 
     app_init_configuration = {
         "name": config.APP_NAME,
-        "debug": config.DEBUG,
         "version": config.APP_VERSION,
+        "debug": config.DEBUG,
     }
 
     # Hide the Swagger and OpenAPI documentation when it's not one of the
@@ -62,6 +64,20 @@ def create_webapp(config: BaseConfig) -> BotpromptsWebapp:
 
     app = BotpromptsWebapp(**app_init_configuration)
     app.initialize_config(config)
+
+    ###
+    ### Rate Limiter
+    ###
+    app.state.limiter = limiter
+
+    ###
+    ### Guest Authentication
+    ###
+    app.state.guest = {
+        "role_name": config.AUTH_GUEST_USER_ROLE_NAME,
+        "role": None,
+        "permissions": [],
+    }
 
     ###
     ### Exception handling
@@ -117,7 +133,7 @@ def create_webapp(config: BaseConfig) -> BotpromptsWebapp:
         log.info("Gzip Disabled")
 
     if config.THH_ENABLE:
-        log.info("Trusted Host Headers")
+        log.info("Trusted Host Headers enabled")
         log.debug("Trusted Host Headers settings:")
         log.debug("\t Trusted Host Headers allowed hosts: %s", config.THH_ALLOWED_HOSTS)
 
@@ -126,6 +142,15 @@ def create_webapp(config: BaseConfig) -> BotpromptsWebapp:
         )
     else:
         log.info("Trusted Host Headers disabled")
+
+    if config.RATE_LIMIT_ENABLED:
+        log.info("Enabling Global Rate Limit")
+        log.debug("\t Global Rate Limit is %s", config.RATE_LIMIT_GLOBAL)
+        app.add_middleware(SlowAPIMiddleware)
+    else:
+        log.info(
+            "Global Rate Limit disabled. Note: Individual routes may still be limited"
+        )
 
     ###
     ### Middleware section
@@ -153,7 +178,6 @@ def create_webapp(config: BaseConfig) -> BotpromptsWebapp:
         response.headers["server"] = f"{config.APP_NAME}/{config.APP_VERSION}"
         return response
 
-
     ###
     ### Router section
     ###
@@ -180,7 +204,6 @@ def create_webapp(config: BaseConfig) -> BotpromptsWebapp:
         """
         Events running on startup
         """
-        pass
 
     @app.on_event("shutdown")
     def on_shutdown() -> None:

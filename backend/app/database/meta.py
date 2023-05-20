@@ -167,7 +167,28 @@ def import_declarative_models() -> None:
     This method contains all the declarative models that we need to import
     """
 
-    from app.modules.prompts.models import PromptHistoryRecord, PromptRecord  # noqa
+
+    from app.core.sys.users.models import (  # noqa
+        SysPermission,
+        SysRole,
+        SysRolesPermissions,
+        SysUser,
+        SysUsersRoles,
+        SysUserToken,
+    )
+
+    from app.core.sys.variables.models import SysVariable, SysVariablePermissions  # noqa
+
+    from app.modules.vendors.models import (  # noqa
+        VendorConnectionRecord,
+        VendorModelRecord,
+        VendorOrganizationRecord,
+        VendorRecord,
+    )
+
+    # from app.modules.prompts.db.prompts import PromptHistoryRecord, PromptRecord  # noqa
+    # from app.modules.prompts.db.vendors import VendorRecord # noqa
+    # from app.modules.variables.models import SysVariable # noqa
 
 
 def get_db(db_manager: DatabaseManager = Depends(DatabaseManager)) -> Engine:
@@ -181,5 +202,5 @@ def get_session(db_manager: DatabaseManager = Depends(DatabaseManager)):
     """
     Creates a new session and yields it for operations
     """
-    with sessionmaker(db_manager.db)() as session:
+    with sessionmaker(bind=db_manager.db)() as session:
         yield session
