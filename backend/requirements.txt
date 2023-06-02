@@ -10,7 +10,7 @@ charset-normalizer==3.1.0
 cleo==2.0.1
 click==8.1.3
 crashtest==0.4.1
-cryptography==40.0.2
+cryptography==41.0.0
 distlib==0.3.6
 dnspython==2.3.0
 dpn-pyutils==3.0.5
